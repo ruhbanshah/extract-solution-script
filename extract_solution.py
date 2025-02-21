@@ -39,7 +39,7 @@ def extract_solution(llm_response: str) -> list[tuple[str, str]]:
         elif file_extension == 'cpp':
             code = remove_cpp_main_function(code)
 
-        file_name = "solution." + file_extension if len(code_blocks) == 1 else f"solution_{index+1}.{file_extension}"
+        file_name = "solution." + file_extension if index == 0 else f"solution_{index}.{file_extension}"
         
         solutions.append((file_name, code))
     
