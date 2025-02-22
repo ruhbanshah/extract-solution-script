@@ -13,6 +13,7 @@ def extract_code_blocks(markdown_text):
 
     return fixed_code_blocks
 
+
 def extract_solution(llm_response: str) -> list[tuple[str, str]]:
     """Extracts code blocks from the response and returns them as solution files."""
     valid_languages = {
@@ -121,8 +122,9 @@ def ensure_js_export_statement(code: str) -> str:
     Ensure JavaScript/TypeScript code contains an export statement.
     If none exists, extract the function signature name and append an export default statement.
     """
+
     # Only add export if none exists
-    if 'export ' in code:
+    if 'export ' in code or 'module.exports' in code:
         return code
 
     # Try pattern for a standard function declaration: "function functionName(...)"
@@ -138,7 +140,8 @@ def ensure_js_export_statement(code: str) -> str:
             # Fallback if no function name is detected
             func_name = "myModule"
 
-    return code + f'\n\nexport default {func_name};'
+    # return code + f'\n\n module.exports = {func_name};' #For CommonJS Based Tasks
+    return code + f'\n\n export default {func_name};' #For ES Modules Based Tasks
 
 def remove_cpp_main_function(code: str) -> str:
     """Removes the entire main function, including its content."""
