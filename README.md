@@ -1,10 +1,11 @@
 # extract-solution-script
  
+**Remember to copy response from your original `extract_solution_test` file or whichever llm response you wish to copy to the `llm_response` variable in the provided `extract_solution_test` file.**
+
+--------------------------
+
 :technologist: New Extraction Script Available! :technologist:
 Hey team! We've developed an Extract Solution Script that covers most of the scenarios we encounter while operating and the specific requirements mentioned by the client for different languages.
-
-:wrench:  Script Repository
-https://github.com/ruhbanshah/extract-solution-script.git
 
 :white_check_mark: What it does:
 Extracts multiple code blocks of any language from markdown.
