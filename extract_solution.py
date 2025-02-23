@@ -9,9 +9,7 @@ def extract_code_blocks(markdown_text):
     # Clean up the extracted code blocks by stripping leading/trailing whitespace
     cleaned_code_blocks = [(lang.strip(), code.strip()) for lang, code in code_blocks] # Changed for consistency
 
-    fixed_code_blocks = [(lang, fix_print_statements(code)) for lang, code in cleaned_code_blocks]
-
-    return fixed_code_blocks
+    return cleaned_code_blocks
 
 
 def extract_solution(llm_response: str) -> list[tuple[str, str]]:
@@ -40,7 +38,8 @@ def extract_solution(llm_response: str) -> list[tuple[str, str]]:
         elif file_extension == 'cpp':
             code = remove_cpp_main_function(code)
 
-        file_name = "solution." + file_extension if index == 0 else f"solution_{index}.{file_extension}"
+        file_path = ""   # Replace with your actual project structure (if any) 
+        file_name = f"{file_path}solution." + file_extension if index == 0 else f"{file_path}solution_{index}.{file_extension}"
         
         solutions.append((file_name, code))
     
@@ -78,45 +77,7 @@ def get_file_extension(language: str) -> str:
         return "json"
     else:
         return "txt"  # Fallback
-
-def fix_print_statements(code):
-    """Removes `\n` inside print statements while keeping everything else intact."""
-    # Match `print("some text with \n inside")`
-    print_pattern = re.compile(r'(print\s*\(\s*[\'"])(.*?)([\'"]\s*\))', re.DOTALL)
-
-    def replace_newline_in_print(match):
-        before, content, after = match.groups()
-        # Remove `\n` inside print statement
-        fixed_content = content.replace("\n", "\\n")
-        return before + fixed_content + after
     
-    code = re.sub(print_pattern, replace_newline_in_print, code)
-
-    
-    # Fix C++ cout statements using regex
-    cout_pattern = re.compile(
-        r'((?:(?:std::)?cout\s*(?:<<\s*(?:"(?:\\.|[^"\\])*"|[^";])+)\s*;))',
-        re.DOTALL
-    )
-
-    def replace_cout_statement(match):
-        stmt = match.group(1)
-        
-        def replace_string_literal(lit_match):
-            literal = lit_match.group(0)
-            
-            inner = literal[1:-1]
-           
-            fixed_inner = inner.replace("\n", "\\n")
-            return '"' + fixed_inner + '"'
-        
-        fixed_stmt = re.sub(r'"(?:\\.|[^"\\])*"', replace_string_literal, stmt)
-        return fixed_stmt
-
-    code = re.sub(cout_pattern, replace_cout_statement, code)
-
-    return code
-
 def ensure_js_export_statement(code: str) -> str:
     """
     Ensure JavaScript/TypeScript code contains an export statement.
