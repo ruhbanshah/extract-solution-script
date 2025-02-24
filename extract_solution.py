@@ -47,7 +47,7 @@ def extract_solution(llm_response: str) -> list[tuple[str, str]]:
         file_path = ""   # Replace with your actual project structure (if any) 
 
         # file_name = f"{file_path}solution." + file_extension if index == 0 else f"{file_path}solution_{index}.{file_extension}"
-        file_name = f"{file_path}solution_{index+1}.{file_extension}"
+        file_name = f"{file_path}solution_{index}.{file_extension}"
 
         solutions.append((file_name, code))
     
