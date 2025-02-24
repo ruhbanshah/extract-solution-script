@@ -1,5 +1,9 @@
 import re
 
+from typing import Optional
+from pathlib import Path
+
+
 def extract_code_blocks(markdown_text):
     """Extracts code blocks from strings. Do NOT modify this function."""    
     code_block_pattern = re.compile(r'```([^\n`]+)\n(.*?)```', re.DOTALL) # Changed for Universal Script
@@ -37,10 +41,14 @@ def extract_solution(llm_response: str) -> list[tuple[str, str]]:
             code = ensure_js_export_statement(code)
         elif file_extension == 'cpp':
             code = remove_cpp_main_function(code)
+        elif file_extension == "java":
+            code = add_package_name(code)
 
         file_path = ""   # Replace with your actual project structure (if any) 
-        file_name = f"{file_path}solution." + file_extension if index == 0 else f"{file_path}solution_{index}.{file_extension}"
-        
+
+        # file_name = f"{file_path}solution." + file_extension if index == 0 else f"{file_path}solution_{index}.{file_extension}"
+        file_name = f"{file_path}solution_{index+1}.{file_extension}"
+
         solutions.append((file_name, code))
     
     return solutions
@@ -129,4 +137,49 @@ def remove_cpp_main_function(code: str) -> str:
         result.append(line)
 
     return "\n".join(result)
+    
+def is_test_file(file_path: Path) -> bool:
+    try:
+        content = file_path.read_text(encoding='utf-8')
+    except Exception as e:
+        return False
+    return "@Test" in content
 
+def find_first_test_file_from_root(root="."):
+    root_path = Path(root)
+    for file in root_path.rglob("*.java"):
+        if is_test_file(file):
+            return file
+    return None
+
+def get_java_package_name(java_file_path: str) -> Optional[str]:
+    try:
+        with open(java_file_path, "r") as f:
+            code = f.read()
+            package_pattern = r"^\s*package\s+([a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*;"
+            match = re.search(package_pattern, code, re.MULTILINE)
+            if match:
+                return match.group(1)
+            else:
+                return None
+    except FileNotFoundError:
+        return None
+    except Exception as e:
+        return None
+
+def add_package_name(code: str) -> str:
+    test_file_path = find_first_test_file_from_root()
+    if not test_file_path:
+        return code
+    test_package_name = get_java_package_name(test_file_path)
+    if not test_package_name:
+        return code
+    package_pattern = r"^\s*package\s+([a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*;"
+    match = re.search(package_pattern, code, re.MULTILINE)
+    if match:
+        existing_package_name = match.group(1)
+        if existing_package_name != test_package_name:
+            code = re.sub(package_pattern, f"package {test_package_name};\n", code)
+    else:
+        code = f"package {test_package_name};\n\n" + code
+    return code
